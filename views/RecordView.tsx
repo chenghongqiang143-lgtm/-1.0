@@ -72,12 +72,12 @@ export const RecordView: React.FC<RecordViewProps> = ({
             <div key={cat}>
                <h3 className="text-[8px] sm:text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-2 ml-1">{cat}</h3>
                {/* Forced grid-cols-2 for task modules */}
-               <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+               <div className="grid grid-cols-2 gap-2 sm:gap-3">
                   {tasks.filter(t => (t.category || '未分类') === cat).map(task => (
                     <TaskBlock
                       key={task.id} task={task} selected={selectedTaskId === task.id}
                       onClick={() => handleTaskClick(task)}
-                      className="w-full px-2 py-1.5"
+                      className="w-full py-2 sm:py-3"
                     />
                   ))}
                </div>

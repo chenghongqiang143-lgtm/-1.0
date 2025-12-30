@@ -60,8 +60,8 @@ export const TaskBlock: React.FC<TaskBlockProps> = ({
       onDrop={onDrop}
       onContextMenu={(e) => e.preventDefault()} // Prevent native context menu on long press
       className={cn(
-        "relative group flex items-center justify-between px-2.5 py-2 rounded-lg transition-all duration-200 cursor-pointer select-none",
-        selected ? "ring-2 ring-offset-1 ring-primary shadow-md scale-[1.02]" : "hover:scale-[1.01] hover:shadow-sm",
+        "relative group flex items-center justify-between px-3 py-3 rounded-xl transition-all duration-200 cursor-pointer select-none border border-black/5",
+        selected ? "ring-2 ring-offset-1 ring-primary shadow-lg scale-[1.02]" : "hover:scale-[1.01] hover:shadow-md",
         "active:scale-95",
         className
       )}
@@ -69,7 +69,7 @@ export const TaskBlock: React.FC<TaskBlockProps> = ({
     >
       <div className="flex items-center gap-2 overflow-hidden flex-1">
         <span 
-            className="font-bold text-[11px] truncate leading-tight tracking-wide"
+            className="font-medium text-[13px] sm:text-sm truncate leading-tight tracking-wide"
             style={{ color: textColor }}
         >
           {task.name}
@@ -78,7 +78,7 @@ export const TaskBlock: React.FC<TaskBlockProps> = ({
       
       <div className="flex items-center gap-1">
         {hasTargets && (
-            <Target size={10} color={textColor} className="opacity-60" />
+            <Target size={12} color={textColor} className="opacity-70" />
         )}
         
         {showEditIcon && (
@@ -88,14 +88,14 @@ export const TaskBlock: React.FC<TaskBlockProps> = ({
                     textColor === '#ffffff' ? "hover:bg-white/20" : "hover:bg-black/10"
                 )}
             >
-                <Edit2 size={10} color={textColor} />
+                <Edit2 size={12} color={textColor} />
             </div>
         )}
       </div>
       
       {/* Selection Indicator Dot */}
       {selected && (
-        <div className="absolute -right-1 -top-1 w-2.5 h-2.5 bg-primary rounded-full border-2 border-white" />
+        <div className="absolute -right-1 -top-1 w-3 h-3 bg-primary rounded-full border-2 border-white shadow-sm" />
       )}
     </div>
   );
