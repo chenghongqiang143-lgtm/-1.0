@@ -223,7 +223,7 @@ export default function App() {
     <div className="h-screen w-screen bg-[#f2f2f5] sm:bg-stone-100 flex items-center justify-center overflow-hidden font-sans text-stone-800 p-0 sm:p-4 md:p-8">
       <div className="w-full h-full sm:max-w-4xl sm:h-[92vh] sm:max-h-[1000px] bg-white sm:rounded-[2.5rem] flex flex-col shadow-2xl relative overflow-hidden sm:ring-1 sm:ring-black/5">
         
-        {/* Header - [Review] [Date Nav] [Settings] */}
+        {/* Header - [Review] [Date Nav] [Spacer] */}
         <header className="pt-8 sm:pt-10 pb-4 px-5 bg-white/80 backdrop-blur-xl flex justify-between items-center z-20 select-none">
            <button 
              onClick={() => setIsReviewModalOpen(true)}
@@ -248,15 +248,8 @@ export default function App() {
                </button>
            </div>
 
-           <button 
-             onClick={() => setActiveTab('settings')}
-             className={cn(
-               "w-10 h-10 flex items-center justify-center rounded-full transition-all active:scale-95",
-               activeTab === 'settings' ? "bg-primary text-white shadow-md" : "bg-stone-100 text-stone-600"
-             )}
-           >
-             <Settings size={20} />
-           </button>
+           {/* Placeholder to balance the header (since Settings is gone) */}
+           <div className="w-10" />
         </header>
 
         {/* Main Content Area */}
@@ -292,13 +285,13 @@ export default function App() {
           )}
         </main>
 
-        {/* Bottom Navigation - Order: [Schedule, Stats, Record] */}
-        {/* Settings is now exclusively in the header as requested */}
+        {/* Bottom Navigation - 4 Pages */}
         <div className="h-24 bg-white border-t border-stone-100 flex items-start justify-center px-6 z-30 shrink-0">
-            <nav className="w-full max-w-sm mt-3 bg-stone-50/80 backdrop-blur rounded-2xl px-2 py-1.5 flex items-center justify-between shadow-sm border border-stone-100/50">
+            <nav className="w-full max-w-md mt-3 bg-stone-50/80 backdrop-blur rounded-2xl px-2 py-1.5 flex items-center justify-between shadow-sm border border-stone-100/50">
                 <NavButton label="安排" active={activeTab === 'schedule'} onClick={() => setActiveTab('schedule')} icon={<Calendar size={20} />} />
                 <NavButton label="统计" active={activeTab === 'stats'} onClick={() => setActiveTab('stats')} icon={<BarChart2 size={20} />} />
                 <NavButton label="记录" active={activeTab === 'record'} onClick={() => setActiveTab('record')} icon={<CheckCircle size={20} />} />
+                <NavButton label="设置" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} icon={<Settings size={20} />} />
             </nav>
         </div>
 

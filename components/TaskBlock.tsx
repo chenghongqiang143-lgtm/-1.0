@@ -69,7 +69,7 @@ export const TaskBlock: React.FC<TaskBlockProps> = ({
     >
       <div className="flex items-center gap-2 overflow-hidden flex-1">
         <span 
-            className="font-medium text-[13px] sm:text-sm truncate leading-tight tracking-wide"
+            className="font-normal text-[13px] sm:text-sm truncate leading-tight tracking-wide"
             style={{ color: textColor }}
         >
           {task.name}
