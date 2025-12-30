@@ -1,7 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { Task, TargetMode } from '../types';
-import { X, Target, Type, Hash, Timer, Check, Tag, Trash2, AlertTriangle } from 'lucide-react';
+import { X, Target, Type, Hash, Timer, Check, Tag, Trash2, AlertTriangle, Save } from 'lucide-react';
+// Fix: Added import for cn utility
+import { cn } from '../utils';
 
 interface TaskEditorModalProps {
   task: Task | null;
@@ -85,85 +87,102 @@ export const TaskEditorModal: React.FC<TaskEditorModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 p-4">
-      <div className="bg-white rounded-[1.5rem] w-full max-w-sm overflow-hidden border border-stone-300 max-h-[90vh] flex flex-col">
-        <div className="flex justify-between items-center px-6 py-4 bg-stone-50 border-b border-stone-200 shrink-0">
-          <h3 className="font-bold text-lg text-stone-800 tracking-tight">{task ? '编辑任务' : '创建新任务'}</h3>
-          <button onClick={onClose} className="p-2 hover:bg-stone-200 rounded-full transition-colors text-stone-400">
-            <X size={20} />
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-stone-900/60 p-4 backdrop-blur-sm">
+      <div className="bg-white rounded-[2rem] w-full max-w-[340px] overflow-hidden border border-stone-300 shadow-2xl flex flex-col max-h-[90vh]">
+        <div className="flex justify-between items-center px-5 py-3.5 bg-stone-50 border-b border-stone-200 shrink-0">
+          <h3 className="font-black text-sm text-stone-800 tracking-tight">{task ? '编辑任务' : '创建新任务'}</h3>
+          <button onClick={onClose} className="p-1.5 hover:bg-stone-200 rounded-full transition-colors text-stone-400">
+            <X size={16} />
           </button>
         </div>
         
-        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6 bg-white">
-          <div className="space-y-4">
+        <form onSubmit={handleSubmit} className="p-5 overflow-y-auto custom-scrollbar flex-1 space-y-4 bg-white">
+          <div className="space-y-2.5">
             <div className="relative">
-               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400">
-                  <Type size={18} />
+               <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-300">
+                  <Type size={14} />
                </div>
                <input 
                   type="text" 
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-stone-400 transition-all font-bold text-stone-800"
+                  className="w-full pl-9 pr-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-stone-400 transition-all font-bold text-xs text-stone-800"
                   placeholder="任务名称"
                />
             </div>
             <div className="relative">
-               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400">
-                  <Tag size={18} />
+               <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-300">
+                  <Tag size={14} />
                </div>
                <input 
                   type="text" 
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-stone-400 transition-all font-medium text-stone-700"
+                  className="w-full pl-9 pr-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:bg-white focus:border-stone-400 transition-all font-bold text-xs text-stone-600"
                   placeholder="分类标签"
                 />
             </div>
           </div>
 
-          <div className="bg-stone-50 rounded-xl p-5 border border-stone-200">
-              <div className="flex items-center gap-2 mb-4 pb-2 border-b border-stone-200">
-                  <Target size={14} className="text-primary" />
-                  <span className="text-xs font-bold text-stone-500 uppercase">目标设定</span>
+          <div className="bg-stone-50 rounded-2xl p-4 border border-stone-100">
+              <div className="flex items-center gap-2 mb-3">
+                  <Target size={12} className="text-primary" />
+                  <span className="text-[9px] font-black text-stone-400 uppercase tracking-widest">目标设定 (可选)</span>
               </div>
-              <div className="flex bg-stone-200 p-1 rounded-lg mb-4">
-                  <button type="button" onClick={() => setTargetMode('duration')} className={`flex-1 py-1.5 rounded-md text-[11px] font-bold transition-all ${targetMode === 'duration' ? 'bg-white text-primary' : 'text-stone-400'}`}>计时</button>
-                  <button type="button" onClick={() => setTargetMode('count')} className={`flex-1 py-1.5 rounded-md text-[11px] font-bold transition-all ${targetMode === 'count' ? 'bg-white text-primary' : 'text-stone-400'}`}>次数</button>
+              
+              <div className="flex bg-stone-200/50 p-1 rounded-lg mb-3">
+                  <button type="button" onClick={() => setTargetMode('duration')} className={`flex-1 py-1 rounded-md text-[10px] font-black transition-all ${targetMode === 'duration' ? 'bg-white text-primary shadow-sm' : 'text-stone-400'}`}>计时</button>
+                  <button type="button" onClick={() => setTargetMode('count')} className={`flex-1 py-1 rounded-md text-[10px] font-black transition-all ${targetMode === 'count' ? 'bg-white text-primary shadow-sm' : 'text-stone-400'}`}>次数</button>
               </div>
-              <div className="flex gap-4">
+              
+              <div className="flex gap-3">
                   <div className="flex-1">
-                      <label className="text-[10px] font-bold text-stone-400 mb-1 block">{targetMode === 'duration' ? '目标时长' : '目标次数'}</label>
-                      <input type="number" step={targetMode === 'duration' ? "0.5" : "1"} value={targetValue} onChange={(e) => setTargetValue(e.target.value)} className="w-full px-3 py-2 bg-white border border-stone-200 rounded-lg text-sm font-bold" />
+                      <label className="text-[8px] font-black text-stone-400 uppercase tracking-tighter mb-1 block">{targetMode === 'duration' ? '目标(h)' : '目标(次)'}</label>
+                      <input type="number" step={targetMode === 'duration' ? "0.5" : "1"} value={targetValue} onChange={(e) => setTargetValue(e.target.value)} className="w-full px-2.5 py-1.5 bg-white border border-stone-200 rounded-lg text-xs font-black text-stone-700 focus:outline-none focus:border-primary" />
                   </div>
                   <div className="flex-1">
-                      <label className="text-[10px] font-bold text-stone-400 mb-1 block">统计周期</label>
-                      <input type="number" value={targetFrequency} onChange={(e) => setTargetFrequency(e.target.value)} className="w-full px-3 py-2 bg-white border border-stone-200 rounded-lg text-sm font-bold" />
+                      <label className="text-[8px] font-black text-stone-400 uppercase tracking-tighter mb-1 block">统计周期(天)</label>
+                      <input type="number" value={targetFrequency} onChange={(e) => setTargetFrequency(e.target.value)} className="w-full px-2.5 py-1.5 bg-white border border-stone-200 rounded-lg text-xs font-black text-stone-700 focus:outline-none focus:border-primary" />
                   </div>
               </div>
           </div>
           
           <div>
-            <label className="block text-xs font-bold text-stone-400 uppercase mb-3">颜色风格</label>
-            <div className="grid grid-cols-6 gap-3">
+            <label className="block text-[9px] font-black text-stone-400 uppercase tracking-widest mb-2.5">色彩风格</label>
+            <div className="grid grid-cols-8 gap-2">
               {PRESET_COLORS.map((c) => (
-                <button type="button" key={c} onClick={() => setColor(c)} className={`w-9 h-9 rounded-full border border-stone-100 flex items-center justify-center ${color === c ? 'ring-2 ring-stone-900 ring-offset-2' : ''}`} style={{ backgroundColor: c }}>
-                    {color === c && <div className="w-2 h-2 bg-white rounded-full" />}
+                <button 
+                  type="button" 
+                  key={c} 
+                  onClick={() => setColor(c)} 
+                  className={`w-7 h-7 rounded-lg border border-white flex items-center justify-center transition-all ${color === c ? 'scale-110 shadow-md ring-1 ring-stone-900 ring-offset-1' : 'hover:scale-105'}`} 
+                  style={{ backgroundColor: c }}
+                >
+                    {color === c && <div className="w-1.5 h-1.5 bg-white rounded-full opacity-50" />}
                 </button>
               ))}
             </div>
           </div>
           
-          <div className="pt-4 border-t border-stone-100 flex gap-3">
+          <div className="pt-3 flex gap-2">
              {task && (
-                 <button type="button" onClick={handleDeleteClick} className={`p-3 rounded-xl transition-all ${showDeleteConfirm ? "bg-red-600 text-white w-full" : "bg-stone-100 text-stone-400 hover:text-red-500"}`}>
-                     {showDeleteConfirm ? <span className="font-bold text-xs">确认删除?</span> : <Trash2 size={18} />}
+                 <button 
+                    type="button" 
+                    onClick={handleDeleteClick} 
+                    className={cn(
+                        "p-2.5 rounded-xl transition-all flex items-center justify-center",
+                        showDeleteConfirm ? "bg-red-600 text-white flex-1" : "bg-stone-50 text-stone-400 hover:text-red-500 hover:bg-red-50"
+                    )}
+                 >
+                     {showDeleteConfirm ? <span className="font-black text-[10px]">确认删除?</span> : <Trash2 size={16} />}
                  </button>
              )}
              {!showDeleteConfirm && (
                  <>
-                    <button type="button" onClick={onClose} className="flex-1 py-3 rounded-xl bg-white border border-stone-300 text-stone-600 font-bold text-sm">取消</button>
-                    <button type="submit" className="flex-1 py-3 rounded-xl bg-stone-900 text-white font-bold text-sm flex items-center justify-center gap-2">确定</button>
+                    <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-white border border-stone-200 text-stone-500 font-bold text-xs hover:bg-stone-50 transition-colors">取消</button>
+                    <button type="submit" className="flex-1 py-2.5 rounded-xl bg-stone-900 text-white font-bold text-xs flex items-center justify-center gap-2 hover:bg-stone-800 active:scale-95 transition-all shadow-md">
+                      <Save size={14} /> 确定
+                    </button>
                  </>
              )}
           </div>
