@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Calendar, CheckCircle, BarChart2, Settings, ChevronLeft, ChevronRight, ClipboardList } from 'lucide-react';
 import { format, addDays, subDays } from 'date-fns';
@@ -31,16 +32,12 @@ export default function App() {
   useEffect(() => {
     setState(loadState());
 
-    // Listen for PWA install prompt
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
       setInstallPrompt(e);
     };
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   }, []);
 
   // Persist on change
@@ -54,20 +51,12 @@ export default function App() {
   const currentSchedule: DayData = useMemo(() => {
       const specificDayData = state.schedule[dateKey] || { hours: {} };
       const recurringData = state.recurringSchedule || {};
-      
       const mergedHours: Record<number, string[]> = { ...specificDayData.hours };
       
-      // Merge recurring tasks into specific day if not already present
-      // Note: This simple merge logic implies "Addition". 
-      // If a user wants to REMOVE a recurring task for a specific day, 
-      // the current simple structure requires removing it from the recurring rule 
-      // or we accept that recurring rules are "defaults" that appear unless overridden.
-      // For this app version, we simply UNION them.
       Object.keys(recurringData).forEach(k => {
           const hour = parseInt(k);
           const recTasks = recurringData[hour] || [];
           const existing = mergedHours[hour] || [];
-          // Deduplicate
           mergedHours[hour] = Array.from(new Set([...existing, ...recTasks]));
       });
 
@@ -80,11 +69,6 @@ export default function App() {
   // --- Actions ---
 
   const updateScheduleHour = (hour: number, taskIds: string[]) => {
-    // When modifying a specific day, we are modifying the 'schedule' state.
-    // NOTE: If a task comes from 'recurringSchedule', deleting it here visually requires 
-    // it to not be in the recurring schedule OR we need a more complex 'exceptions' logic.
-    // For now, to keep it consistent with "Add to every future day", we will just update the specific day.
-    // If the user is in 'Repeat Mode' in UI, they will call 'updateRecurringSchedule' instead.
     setState(prev => ({
         ...prev,
         schedule: {
@@ -100,7 +84,6 @@ export default function App() {
       setState(prev => ({
           ...prev,
           recurringSchedule: {
-              ...prev.recurringSchedule,
               [hour]: taskIds
           }
       }));
@@ -128,7 +111,6 @@ export default function App() {
     }));
   };
 
-  // Task Management
   const handleUpdateTask = (updatedTask: Task) => {
       setState(prev => ({
           ...prev,
@@ -146,15 +128,9 @@ export default function App() {
 
   const handleDeleteTask = (taskId: string) => {
       if (!taskId) return;
-
       setState(prev => {
-          // Robust Deep Clone to ensure no reference artifacts remain
           const newState = JSON.parse(JSON.stringify(prev)) as AppState;
-
-          // 1. Remove from tasks array
           newState.tasks = newState.tasks.filter(t => t.id !== taskId);
-
-          // 2. Remove from ALL schedule entries
           Object.keys(newState.schedule).forEach(dayKey => {
               const dayData = newState.schedule[dayKey];
               if (dayData && dayData.hours) {
@@ -166,8 +142,6 @@ export default function App() {
                   });
               }
           });
-          
-          // 3. Remove from Recurring Schedule
           if (newState.recurringSchedule) {
               Object.keys(newState.recurringSchedule).forEach(hKey => {
                   const h = parseInt(hKey);
@@ -176,8 +150,6 @@ export default function App() {
                   }
               });
           }
-
-          // 4. Remove from ALL record entries
           Object.keys(newState.records).forEach(dayKey => {
               const dayData = newState.records[dayKey];
               if (dayData && dayData.hours) {
@@ -189,24 +161,19 @@ export default function App() {
                   });
               }
           });
-
           return newState;
       });
   };
 
-  // App & Data Actions
   const handleInstallApp = () => {
     if (!installPrompt) return;
     installPrompt.prompt();
     installPrompt.userChoice.then((choiceResult: any) => {
-      if (choiceResult.outcome === 'accepted') {
-        setInstallPrompt(null);
-      }
+      if (choiceResult.outcome === 'accepted') setInstallPrompt(null);
     });
   };
 
   const handleClearData = () => {
-    // Reset to initial state (Keep default tasks structure for UX, but clear all user data)
     setState({
         tasks: DEFAULT_TASKS,
         schedule: {},
@@ -235,88 +202,57 @@ export default function App() {
         try {
             const content = e.target?.result as string;
             const parsed = JSON.parse(content);
-            // Simple validation
             if (Array.isArray(parsed.tasks) && parsed.schedule) {
                 if (window.confirm('导入将覆盖当前所有数据，确定要继续吗？')) {
                     setState(parsed);
-                    alert('数据导入成功！');
                 }
-            } else {
-                alert('无效的数据文件格式');
             }
-        } catch (err) {
-            console.error(err);
-            alert('导入失败：无法解析文件');
-        }
+        } catch (err) { alert('导入失败'); }
     };
     reader.readAsText(file);
   };
 
-  // Handle Date Picker Change
   const handleDateSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.value) {
-        // Parse "yyyy-MM-dd" to Date object, ensuring local time
         const [year, month, day] = e.target.value.split('-').map(Number);
         setCurrentDate(new Date(year, month - 1, day));
     }
   };
 
   return (
-    <div className="h-screen w-screen bg-[#f2f2f5] sm:bg-gradient-to-br sm:from-slate-100 sm:to-indigo-50 flex items-center justify-center overflow-hidden font-sans text-stone-800 p-0 sm:p-6 md:p-10">
-      <div className="w-full max-w-[440px] h-full sm:h-[850px] bg-white sm:rounded-[3rem] flex flex-col shadow-2xl shadow-indigo-200/40 relative overflow-hidden ring-4 ring-white/50">
+    <div className="h-screen w-screen bg-[#f2f2f5] sm:bg-stone-100 flex items-center justify-center overflow-hidden font-sans text-stone-800 p-0 sm:p-4 md:p-8">
+      <div className="w-full h-full sm:max-w-4xl sm:h-[92vh] sm:max-h-[1000px] bg-white sm:rounded-[2.5rem] flex flex-col shadow-2xl relative overflow-hidden sm:ring-1 sm:ring-black/5">
         
-        {/* Header */}
-        <header className="pt-10 pb-4 px-5 bg-white/80 backdrop-blur-xl flex justify-between items-center z-20 select-none">
-           {/* Review Button */}
+        {/* Header - [Review] [Date Nav] [Settings] */}
+        <header className="pt-8 sm:pt-10 pb-4 px-5 bg-white/80 backdrop-blur-xl flex justify-between items-center z-20 select-none">
            <button 
              onClick={() => setIsReviewModalOpen(true)}
-             className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-soft hover:bg-white hover:shadow-md text-stone-600 transition-all active:scale-95 flex-shrink-0"
+             className="w-10 h-10 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 transition-all active:scale-95"
            >
              <ClipboardList size={20} />
            </button>
            
-           {/* Date Navigation - Widened and Improved */}
-           <div className="flex items-center gap-3 bg-stone-100/50 rounded-full p-1 pl-2 pr-2 border border-stone-50">
-               <button 
-                 onClick={() => setCurrentDate(subDays(currentDate, 1))} 
-                 className="w-10 h-10 flex items-center justify-center rounded-full text-stone-500 hover:text-stone-800 hover:bg-white shadow-sm transition-all active:scale-95"
-               >
-                 <ChevronLeft size={22} />
+           <div className="flex items-center gap-2 sm:gap-4 bg-stone-100/50 rounded-full p-1 border border-stone-50">
+               <button onClick={() => setCurrentDate(subDays(currentDate, 1))} className="w-9 h-9 flex items-center justify-center rounded-full text-stone-500 hover:bg-white shadow-sm transition-all active:scale-90">
+                 <ChevronLeft size={20} />
                </button>
                
-               <div className="relative flex flex-col items-center justify-center group cursor-pointer px-4 min-w-[100px]">
-                 {/* Hidden Date Input for Trigger */}
-                 <input 
-                    type="date" 
-                    className="absolute inset-0 w-full h-full opacity-0 z-20 cursor-pointer"
-                    value={format(currentDate, 'yyyy-MM-dd')}
-                    onChange={handleDateSelect}
-                 />
-                 
-                 <div className="flex items-center gap-2 transition-transform group-hover:scale-105 duration-200">
-                    <span className="font-bold text-lg text-stone-800 tracking-tight leading-none">{format(currentDate, 'M月d日', { locale: zhCN })}</span>
-                 </div>
-                 <span className="text-[10px] font-semibold text-stone-400 tracking-wider uppercase mt-0.5">
-                   {format(currentDate, 'EEEE', { locale: zhCN })}
-                 </span>
+               <div className="relative flex flex-col items-center justify-center px-2 sm:px-4 min-w-[100px]">
+                 <input type="date" className="absolute inset-0 w-full h-full opacity-0 z-20 cursor-pointer" value={format(currentDate, 'yyyy-MM-dd')} onChange={handleDateSelect} />
+                 <span className="font-bold text-base sm:text-lg text-stone-800 tracking-tight leading-none">{format(currentDate, 'M月d日', { locale: zhCN })}</span>
+                 <span className="text-[10px] font-semibold text-stone-400 uppercase mt-0.5">{format(currentDate, 'EEEE', { locale: zhCN })}</span>
                </div>
 
-               <button 
-                 onClick={() => setCurrentDate(addDays(currentDate, 1))} 
-                 className="w-10 h-10 flex items-center justify-center rounded-full text-stone-500 hover:text-stone-800 hover:bg-white shadow-sm transition-all active:scale-95"
-               >
-                 <ChevronRight size={22} />
+               <button onClick={() => setCurrentDate(addDays(currentDate, 1))} className="w-9 h-9 flex items-center justify-center rounded-full text-stone-500 hover:bg-white shadow-sm transition-all active:scale-90">
+                 <ChevronRight size={20} />
                </button>
            </div>
 
-           {/* Settings Button */}
            <button 
              onClick={() => setActiveTab('settings')}
              className={cn(
-                "w-10 h-10 flex items-center justify-center rounded-full transition-all active:scale-95 flex-shrink-0",
-                activeTab === 'settings' 
-                    ? "bg-primary text-white shadow-lg shadow-primary/20" 
-                    : "bg-surface-soft hover:bg-white hover:shadow-md text-stone-600"
+               "w-10 h-10 flex items-center justify-center rounded-full transition-all active:scale-95",
+               activeTab === 'settings' ? "bg-primary text-white shadow-md" : "bg-stone-100 text-stone-600"
              )}
            >
              <Settings size={20} />
@@ -324,102 +260,63 @@ export default function App() {
         </header>
 
         {/* Main Content Area */}
-        <main className="flex-1 overflow-hidden relative bg-white/50">
+        <main className="flex-1 overflow-hidden relative bg-white">
           {activeTab === 'schedule' && (
             <ScheduleView 
-                tasks={state.tasks} 
-                dayData={currentSchedule}
-                recurringData={state.recurringSchedule}
-                onUpdateHour={updateScheduleHour}
-                onUpdateRecurring={updateRecurringSchedule}
-                onUpdateTask={handleUpdateTask}
-                onDeleteTask={handleDeleteTask}
+                tasks={state.tasks} dayData={currentSchedule} recurringData={state.recurringSchedule}
+                onUpdateHour={updateScheduleHour} onUpdateRecurring={updateRecurringSchedule}
+                onUpdateTask={handleUpdateTask} onDeleteTask={handleDeleteTask}
             />
           )}
           {activeTab === 'record' && (
             <RecordView 
-                tasks={state.tasks} 
-                dayData={currentRecord} 
-                onUpdateHour={updateRecordHour}
-                onUpdateTask={handleUpdateTask}
-                onDeleteTask={handleDeleteTask}
+                tasks={state.tasks} dayData={currentRecord} 
+                onUpdateHour={updateRecordHour} onUpdateTask={handleUpdateTask} onDeleteTask={handleDeleteTask}
             />
           )}
           {activeTab === 'stats' && (
             <StatsView 
-                tasks={state.tasks}
-                scheduleData={currentSchedule}
-                recordData={currentRecord}
-                allSchedules={state.schedule}
-                recurringSchedule={state.recurringSchedule}
-                allRecords={state.records}
-                review={currentReview}
-                onUpdateReview={updateReview}
-                currentDate={dateKey}
-                dateObj={currentDate}
+                tasks={state.tasks} scheduleData={currentSchedule} recordData={currentRecord}
+                allSchedules={state.schedule} recurringSchedule={state.recurringSchedule}
+                allRecords={state.records} review={currentReview} onUpdateReview={updateReview}
+                currentDate={dateKey} dateObj={currentDate}
             />
           )}
           {activeTab === 'settings' && (
             <SettingsTab
-                tasks={state.tasks}
-                onAddTask={handleAddTask}
-                onUpdateTask={handleUpdateTask}
-                onDeleteTask={handleDeleteTask}
-                showInstallButton={!!installPrompt}
-                onInstall={handleInstallApp}
-                onExportData={handleExportData}
-                onImportData={handleImportData}
-                onClearData={handleClearData}
-                allSchedules={state.schedule}
-                allRecords={state.records}
-                currentDate={currentDate}
+                tasks={state.tasks} onAddTask={handleAddTask} onUpdateTask={handleUpdateTask} onDeleteTask={handleDeleteTask}
+                showInstallButton={!!installPrompt} onInstall={handleInstallApp} onExportData={handleExportData}
+                onImportData={handleImportData} onClearData={handleClearData} allSchedules={state.schedule}
+                allRecords={state.records} currentDate={currentDate}
             />
           )}
         </main>
 
-        {/* Floating Bottom Navigation */}
-        <div className="absolute bottom-6 left-0 right-0 flex justify-center z-30 pointer-events-none">
-            <nav className="h-16 bg-white/90 backdrop-blur-md rounded-full px-6 flex items-center gap-10 shadow-2xl shadow-stone-200/50 border border-white/50 pointer-events-auto transform translate-y-0 transition-transform">
-                <NavButton 
-                    active={activeTab === 'schedule'} 
-                    onClick={() => setActiveTab('schedule')} 
-                    icon={<Calendar size={22} strokeWidth={activeTab === 'schedule' ? 2.5 : 2} />} 
-                />
-                <NavButton 
-                    active={activeTab === 'stats'} 
-                    onClick={() => setActiveTab('stats')} 
-                    icon={<BarChart2 size={22} strokeWidth={activeTab === 'stats' ? 2.5 : 2} />} 
-                />
-                <NavButton 
-                    active={activeTab === 'record'} 
-                    onClick={() => setActiveTab('record')} 
-                    icon={<CheckCircle size={22} strokeWidth={activeTab === 'record' ? 2.5 : 2} />} 
-                />
+        {/* Bottom Navigation - Order: [Schedule, Stats, Record] */}
+        {/* Settings is now exclusively in the header as requested */}
+        <div className="h-24 bg-white border-t border-stone-100 flex items-start justify-center px-6 z-30 shrink-0">
+            <nav className="w-full max-w-sm mt-3 bg-stone-50/80 backdrop-blur rounded-2xl px-2 py-1.5 flex items-center justify-between shadow-sm border border-stone-100/50">
+                <NavButton label="安排" active={activeTab === 'schedule'} onClick={() => setActiveTab('schedule')} icon={<Calendar size={20} />} />
+                <NavButton label="统计" active={activeTab === 'stats'} onClick={() => setActiveTab('stats')} icon={<BarChart2 size={20} />} />
+                <NavButton label="记录" active={activeTab === 'record'} onClick={() => setActiveTab('record')} icon={<CheckCircle size={20} />} />
             </nav>
         </div>
 
-        <ReviewModal 
-            isOpen={isReviewModalOpen}
-            onClose={() => setIsReviewModalOpen(false)}
-            date={currentDate}
-            initialContent={currentReview}
-            onSave={updateReview}
-        />
-
+        <ReviewModal isOpen={isReviewModalOpen} onClose={() => setIsReviewModalOpen(false)} date={currentDate} initialContent={currentReview} onSave={updateReview} />
       </div>
     </div>
   );
 }
 
-const NavButton = ({ active, onClick, icon }: { active: boolean, onClick: () => void, icon: React.ReactNode }) => (
+const NavButton = ({ active, onClick, icon, label }: { active: boolean, onClick: () => void, icon: React.ReactNode, label: string }) => (
   <button 
     onClick={onClick}
     className={cn(
-        "relative flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300",
-        active ? "text-primary bg-primary/10" : "text-stone-400 hover:text-stone-600 hover:bg-stone-50"
+        "flex flex-col items-center justify-center flex-1 py-1 px-2 rounded-xl transition-all duration-300 gap-1",
+        active ? "text-primary bg-white shadow-sm" : "text-stone-400 hover:text-stone-600"
     )}
   >
-    <div className={cn("transition-all duration-300", active ? "scale-100" : "scale-90")}>{icon}</div>
-    {active && <div className="absolute -bottom-1 w-1 h-1 bg-primary rounded-full opacity-50"></div>}
+    <div className={cn("transition-transform duration-300", active ? "scale-110" : "scale-100")}>{icon}</div>
+    <span className={cn("text-[9px] font-bold tracking-tight uppercase", active ? "opacity-100" : "opacity-60")}>{label}</span>
   </button>
 );
