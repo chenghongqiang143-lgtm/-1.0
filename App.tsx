@@ -228,7 +228,7 @@ export default function App() {
     <div className="h-screen w-screen bg-stone-100 flex items-center justify-center overflow-hidden font-sans text-stone-800 p-0 sm:p-4">
       <div className="w-full h-full sm:max-w-6xl sm:h-[94vh] sm:max-h-[1000px] bg-white sm:rounded-[2rem] flex flex-col relative border border-stone-200 shadow-2xl overflow-hidden">
         
-        <header className="pt-8 sm:pt-10 pb-4 px-6 bg-white flex items-center justify-between z-40 select-none shrink-0 border-b border-stone-100">
+        <header className="pt-8 sm:pt-10 pb-1 px-6 bg-white flex items-center justify-between z-40 select-none shrink-0 border-b border-stone-100">
            <div className="w-16 sm:w-24 flex justify-start items-center gap-2">
                 {!isSelectedToday && (
                   <button 
@@ -248,7 +248,7 @@ export default function App() {
                 <div className="relative">
                   <button 
                     onClick={triggerDatePicker}
-                    className="flex flex-col items-center justify-center text-center group hover:bg-stone-50 px-4 py-2 rounded-2xl transition-all active:scale-95"
+                    className="flex flex-col items-center justify-center text-center group hover:bg-stone-50 px-4 py-1.5 rounded-2xl transition-all active:scale-95"
                   >
                       <span className="font-black text-xl sm:text-2xl text-stone-800 tracking-tight leading-none group-hover:text-primary transition-colors whitespace-nowrap">
                           {format(currentDate, 'M月d日', { locale: zhCN })}

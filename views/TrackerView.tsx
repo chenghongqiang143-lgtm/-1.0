@@ -228,12 +228,17 @@ export const TrackerView: React.FC<TrackerViewProps> = ({
     </div>
   );
 
+  const sidebarIsRight = activeSlot?.type === 'schedule';
+
   return (
     <div className="flex h-full bg-white relative overflow-hidden">
       {/* 任务选择侧边栏 (移动端) */}
       <div className={cn(
-        "absolute inset-y-0 left-0 w-[280px] bg-white border-r border-stone-200 z-50 transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] flex flex-col shadow-2xl lg:shadow-none",
-        sidebar === 'task' ? "translate-x-0" : "-translate-x-full"
+        "fixed lg:absolute inset-y-0 w-[280px] bg-white border-stone-200 z-50 transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] flex flex-col shadow-2xl lg:shadow-none",
+        sidebarIsRight ? "right-0 border-l" : "left-0 border-r",
+        sidebar === 'task' 
+            ? "translate-x-0" 
+            : (sidebarIsRight ? "translate-x-full" : "-translate-x-full")
       )}>
         <div className="p-5 border-b border-stone-100 flex justify-between items-center">
             <div className="flex items-center gap-2.5">
