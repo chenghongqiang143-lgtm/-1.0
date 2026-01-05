@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useLayoutEffect, useMemo } from 'react';
+import React, { useState, useRef, useLayoutEffect, useMemo, useEffect } from 'react';
 import { Task, DayData, HOURS, Objective, Todo } from '../types';
 import { TimelineRow } from '../components/TimelineRow';
 import { TaskEditorModal } from '../components/TaskEditorModal';
@@ -21,6 +21,7 @@ interface TrackerViewProps {
   onDeleteTask: (taskId: string) => void;
   onAddTodo: (todo: Todo) => void;
   currentDate: Date;
+  onEditingStatusChange?: (status: string | null) => void;
 }
 
 export const TrackerView: React.FC<TrackerViewProps> = ({
@@ -36,7 +37,8 @@ export const TrackerView: React.FC<TrackerViewProps> = ({
   onUpdateTask,
   onDeleteTask,
   onAddTodo,
-  currentDate
+  currentDate,
+  onEditingStatusChange
 }) => {
   const [activeSlot, setActiveSlot] = useState<{ hour: number, side: 'plan' | 'actual' } | null>(null);
   const [isRecurringMode, setIsRecurringMode] = useState(false);
@@ -47,6 +49,17 @@ export const TrackerView: React.FC<TrackerViewProps> = ({
   useLayoutEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = 180;
   }, []);
+
+  // 同步状态到父组件
+  useEffect(() => {
+    if (onEditingStatusChange) {
+      if (activeSlot) {
+        onEditingStatusChange(`${activeSlot.hour}:00 ${activeSlot.side === 'plan' ? '安排' : '记录'}`);
+      } else {
+        onEditingStatusChange(null);
+      }
+    }
+  }, [activeSlot, onEditingStatusChange]);
 
   const taskProgress = useMemo(() => {
     const stats: Record<string, number> = {};
@@ -60,7 +73,7 @@ export const TrackerView: React.FC<TrackerViewProps> = ({
           if (task?.targets?.mode === 'count') {
             stats[tid] += 1;
           } else {
-            stats[tid] += (1 / ids.length);
+            stats[tid] += (1 / Math.max(ids.length, 1));
           }
         }
       });
@@ -129,33 +142,33 @@ export const TrackerView: React.FC<TrackerViewProps> = ({
 
   const PoolContent = () => (
     <div className="flex flex-col h-full bg-white">
-        <div className="px-3 py-2 border-b border-stone-100 flex items-center justify-between sticky top-0 bg-white/90 backdrop-blur-md z-10">
-            <h3 className="text-[9px] font-medium text-stone-400 uppercase tracking-widest flex items-center gap-1.5">
-                <LayoutGrid size={10} /> 行为库
+        <div className="px-4 py-3 border-b border-stone-100 flex items-center justify-between sticky top-0 bg-white/90 backdrop-blur-md z-10 shrink-0">
+            <h3 className="text-[9px] font-bold text-stone-900 uppercase tracking-widest flex items-center gap-1.5">
+                <LayoutGrid size={10} /> 行为模板库
             </h3>
             {activeSlot?.side === 'plan' && (
                 <button 
                     onClick={() => setIsRecurringMode(!isRecurringMode)}
                     className={cn(
-                        "px-2 py-0.5 rounded-md text-[8px] font-medium uppercase transition-all flex items-center gap-1 border",
+                        "px-2 py-0.5 rounded-md text-[8px] font-bold uppercase transition-all flex items-center gap-1 border",
                         isRecurringMode ? "bg-stone-900 text-white border-stone-900" : "bg-white text-stone-400 border-stone-100 hover:border-stone-300"
                     )}
                 >
-                    <Repeat size={10} /> {isRecurringMode ? '循环中' : '循环'}
+                    <Repeat size={10} /> {isRecurringMode ? '已开启循环' : '循环'}
                 </button>
             )}
             <button onClick={() => setActiveSlot(null)} className="p-1 hover:bg-stone-100 rounded-full text-stone-300 transition-colors">
                 <X size={14} />
             </button>
         </div>
-        <div className="flex-1 overflow-y-auto p-2 space-y-4 custom-scrollbar pb-32">
+        <div className="flex-1 overflow-y-auto p-3 space-y-6 custom-scrollbar pb-32">
             {sortedCategories.map(cat => (
-                <div key={cat} className="space-y-1.5">
+                <div key={cat} className="space-y-2">
                     <div className="px-1 flex items-center gap-2">
-                        <span className="text-[8px] font-medium text-stone-300 uppercase tracking-[0.2em] truncate">{getObjectiveTitle(cat)}</span>
-                        <div className="h-px flex-1 bg-stone-50" />
+                        <span className="text-[9px] font-bold text-stone-400 uppercase tracking-[0.2em] truncate">{getObjectiveTitle(cat)}</span>
+                        <div className="h-px flex-1 bg-stone-100" />
                     </div>
-                    <div className="grid grid-cols-2 gap-1.5">
+                    <div className="grid grid-cols-2 gap-2">
                         {tasks.filter(t => (t.category || '未分类') === cat).map(task => {
                             const isSelected = isTaskInActiveSlot(task.id);
                             const currentVal = taskProgress[task.id] || 0;
@@ -175,22 +188,24 @@ export const TrackerView: React.FC<TrackerViewProps> = ({
                                             : "bg-white border-stone-100 hover:border-stone-300 text-stone-700"
                                     )}
                                 >
-                                    <div 
-                                        className="absolute left-0 top-0 bottom-0 pointer-events-none transition-all duration-700 ease-out z-0"
-                                        style={{ 
-                                            width: isSelected ? '0%' : `${progress}%`, 
-                                            backgroundColor: `${task.color}15`
-                                        }}
-                                    />
+                                    {!isSelected && (
+                                        <div 
+                                            className="absolute left-0 top-0 bottom-0 pointer-events-none transition-all duration-700 ease-out z-0"
+                                            style={{ 
+                                                width: `${progress}%`, 
+                                                backgroundColor: `${task.color}15`
+                                            }}
+                                        />
+                                    )}
 
                                     <div className="relative z-10 flex items-center gap-2 w-full min-w-0">
                                         <div className={cn(
-                                            "w-1.5 h-1.5 rounded-full shrink-0 shadow-[0_0_2px_rgba(0,0,0,0.1)]",
-                                            isCompleted ? "animate-pulse" : ""
-                                        )} style={{ backgroundColor: task.color }} />
+                                            "w-1.5 h-1.5 rounded-full shrink-0",
+                                            isCompleted && !isSelected ? "animate-pulse shadow-[0_0_4px_rgba(0,0,0,0.2)]" : ""
+                                        )} style={{ backgroundColor: isSelected ? 'white' : task.color }} />
                                         
                                         <span className={cn(
-                                            "text-[10px] font-medium leading-none truncate flex-1"
+                                            "text-[10px] font-bold leading-none truncate flex-1"
                                         )}>{task.name}</span>
 
                                         {!isSelected && isCompleted && (
@@ -214,25 +229,27 @@ export const TrackerView: React.FC<TrackerViewProps> = ({
 
   return (
     <div className="flex h-full bg-white overflow-hidden relative">
+      {/* 记录页 (Actual Side) 激活时从左侧弹出 */}
       <aside className={cn(
-        "absolute left-0 top-0 bottom-0 w-[200px] bg-white border-r border-stone-100 z-50 transition-transform duration-500 ease-out shadow-[10px_0_30px_rgba(0,0,0,0.05)]",
-        activeSlot?.side === 'plan' ? "translate-x-0" : "-translate-x-full"
+        "absolute left-0 top-0 bottom-0 w-[240px] bg-white border-r border-stone-200 z-[70] transition-transform duration-500 ease-out shadow-[10px_0_40px_rgba(0,0,0,0.08)]",
+        activeSlot?.side === 'actual' ? "translate-x-0" : "-translate-x-full"
       )}>
         <PoolContent />
       </aside>
 
+      {/* 安排页 (Plan Side) 激活时从右侧弹出 */}
       <aside className={cn(
-        "absolute right-0 top-0 bottom-0 w-[200px] bg-white border-l border-stone-100 z-50 transition-transform duration-500 ease-out shadow-[-10px_0_30px_rgba(0,0,0,0.05)]",
-        activeSlot?.side === 'actual' ? "translate-x-0" : "translate-x-full"
+        "absolute right-0 top-0 bottom-0 w-[240px] bg-white border-l border-stone-200 z-[70] transition-transform duration-500 ease-out shadow-[-10px_0_40px_rgba(0,0,0,0.08)]",
+        activeSlot?.side === 'plan' ? "translate-x-0" : "translate-x-full"
       )}>
         <PoolContent />
       </aside>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto relative bg-white custom-scrollbar pb-32">
-        <div className="sticky top-0 bg-white/95 backdrop-blur-md z-30 px-5 py-3 border-b border-stone-100 flex items-center justify-between">
+        <div className="sticky top-0 bg-white/95 backdrop-blur-md z-40 px-5 py-3 border-b border-stone-100 flex items-center justify-between">
             <div className="flex items-center gap-6 w-full">
                 <div className="flex-1 flex items-center justify-center gap-2 text-stone-300">
-                    <span className="text-[10px] font-medium uppercase tracking-[0.2em]">安排 (Plan)</span>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.2em]">安排 (Plan)</span>
                     <ChevronLeft size={12} />
                 </div>
                 <div className="w-14 flex items-center justify-center">
@@ -240,10 +257,11 @@ export const TrackerView: React.FC<TrackerViewProps> = ({
                 </div>
                 <div className="flex-1 flex items-center justify-center gap-2 text-stone-300">
                     <ChevronRight size={12} />
-                    <span className="text-[10px] font-medium uppercase tracking-[0.2em]">记录 (Actual)</span>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.2em]">记录 (Actual)</span>
                 </div>
             </div>
         </div>
+
         <div className="pt-1">
           {HOURS.map(hour => (
             <TimelineRow 
@@ -254,7 +272,7 @@ export const TrackerView: React.FC<TrackerViewProps> = ({
               allTasks={tasks} 
               onScheduleClick={(h) => handleHourClick(h, 'plan')}
               onRecordClick={(h) => handleHourClick(h, 'actual')}
-              activeSlot={activeSlot}
+              activeSlot={activeSlot ? { hour: activeSlot.hour, type: activeSlot.side === 'plan' ? 'schedule' : 'record' } : null}
             />
           ))}
         </div>

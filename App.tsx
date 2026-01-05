@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { ChevronLeft, ChevronRight, ListTodo, LayoutGrid, ClipboardCheck, Settings, BarChart2, CalendarDays, StarHalf, TrendingUp } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ListTodo, LayoutGrid, ClipboardCheck, Settings, BarChart2, CalendarDays, StarHalf, TrendingUp, Edit3 } from 'lucide-react';
 import { format, addDays, subDays } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { AppState, Tab, Task, DayData, Objective, Todo, DayRating } from './types';
@@ -21,6 +21,7 @@ export default function App() {
   const [isStatsOpen, setIsStatsOpen] = useState(false);
   const [isTaskStatsOpen, setIsTaskStatsOpen] = useState(false);
   const [isRatingStatsOpen, setIsRatingStatsOpen] = useState(false);
+  const [editingStatus, setEditingStatus] = useState<string | null>(null);
   
   const [requestPoolOpen, setRequestPoolOpen] = useState(0); 
   
@@ -34,6 +35,11 @@ export default function App() {
   }, []);
 
   useEffect(() => { saveState(state); }, [state]);
+
+  // 当切换标签时清除编辑状态
+  useEffect(() => {
+    setEditingStatus(null);
+  }, [activeTab]);
 
   const dateKey = formatDate(currentDate);
 
@@ -122,27 +128,32 @@ export default function App() {
     <div className="h-screen w-screen bg-stone-50 flex items-center justify-center overflow-hidden font-sans text-stone-800 p-0 sm:p-4">
       <div className="w-full h-full sm:max-w-6xl sm:h-[96vh] bg-white sm:rounded-xl flex flex-col relative border border-stone-200 shadow-2xl overflow-hidden">
         
-        <header className="pt-10 pb-2 px-4 bg-white/80 backdrop-blur-md flex items-center justify-between z-40 shrink-0 border-b border-stone-100">
-           <div className="w-24 flex justify-start items-center">
-                {activeTab === 'todo' && (
+        <header className="pt-10 pb-2 px-4 bg-white/80 backdrop-blur-md flex items-center justify-between z-[60] shrink-0 border-b border-stone-100">
+           <div className="w-28 flex justify-start items-center">
+                {activeTab === 'todo' ? (
                   <button onClick={() => setRequestPoolOpen(prev => prev + 1)} className="flex flex-col items-center gap-0.5 text-stone-300 hover:text-primary transition-all group">
                     <LayoutGrid size={18} className="group-hover:scale-110 transition-transform" />
                     <span className="text-[8px] font-medium uppercase tracking-tighter">模板</span>
                   </button>
-                )}
+                ) : editingStatus ? (
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-stone-900 text-white rounded-lg animate-in fade-in slide-in-from-left-2 duration-300 shadow-sm border border-stone-800">
+                    <Edit3 size={12} className="text-emerald-400" />
+                    <span className="text-[10px] font-bold whitespace-nowrap">{editingStatus}</span>
+                  </div>
+                ) : null}
            </div>
            
            <div className="flex-1 flex items-center justify-center gap-2 sm:gap-4">
                 <button onClick={() => setCurrentDate(subDays(currentDate, 1))} className="p-2 text-stone-300 hover:text-stone-800 transition-all"><ChevronLeft size={20} /></button>
                 <button onClick={() => dateInputRef.current?.showPicker?.() || dateInputRef.current?.click()} className="flex flex-col items-center justify-center px-2 py-1.5 rounded-lg transition-all">
-                    <span className="font-medium text-lg sm:text-xl text-stone-800">{format(currentDate, 'M月d日', { locale: zhCN })}</span>
+                    <span className="font-bold text-lg sm:text-xl text-stone-800">{format(currentDate, 'M月d日', { locale: zhCN })}</span>
                     <span className="text-[9px] font-medium text-stone-400 uppercase tracking-widest mt-0.5">{format(currentDate, 'EEEE', { locale: zhCN })}</span>
                     <input ref={dateInputRef} type="date" className="absolute opacity-0 pointer-events-none" value={format(currentDate, 'yyyy-MM-dd')} onChange={(e) => e.target.value && setCurrentDate(new Date(e.target.value))} />
                 </button>
                 <button onClick={() => setCurrentDate(addDays(currentDate, 1))} className="p-2 text-stone-300 hover:text-stone-800 transition-all"><ChevronRight size={20} /></button>
            </div>
            
-           <div className="w-24 flex justify-end items-center">
+           <div className="w-28 flex justify-end items-center">
                 {activeTab === 'todo' && (
                   <button onClick={() => setIsTaskStatsOpen(true)} className="flex flex-col items-center gap-0.5 text-stone-300 hover:text-primary transition-all group">
                     <CalendarDays size={18} className="group-hover:scale-110 transition-transform" />
@@ -192,6 +203,7 @@ export default function App() {
                 onUpdateRecurring={updateRecurringHour}
                 onUpdateTask={handleUpdateTask} onDeleteTask={handleDeleteTask} 
                 onAddTodo={handleAddTodo} currentDate={currentDate}
+                onEditingStatusChange={setEditingStatus}
             />
           )}
 
@@ -237,7 +249,7 @@ export default function App() {
           )}
         </main>
 
-        <div className="h-24 bg-white border-t border-stone-100 flex items-start justify-center px-4 z-40 shrink-0">
+        <div className="h-24 bg-white border-t border-stone-100 flex items-start justify-center px-4 z-[60] shrink-0">
             <nav className="w-full max-w-md mt-3 bg-stone-100 rounded-xl px-2 py-2 flex items-center justify-between border border-stone-200">
                 <NavButton label="安排" active={activeTab === 'todo'} onClick={() => setActiveTab('todo')} icon={<ListTodo size={18} />} />
                 <NavButton label="记录" active={activeTab === 'record'} onClick={() => setActiveTab('record')} icon={<ClipboardCheck size={18} />} />

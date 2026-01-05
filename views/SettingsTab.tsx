@@ -68,7 +68,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
           if (task?.targets?.mode === 'count') {
             stats[tid] += 1;
           } else {
-            stats[tid] += (1 / (ids.length || 1));
+            stats[tid] += (1 / Math.max(ids.length, 1));
           }
         }
       });
@@ -100,25 +100,25 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
     }
   };
 
-  const blockClass = "bg-white h-10 px-4 rounded-xl border border-stone-100 flex items-center justify-between group hover:border-stone-200 transition-all cursor-pointer shadow-sm active:scale-[0.98] relative overflow-hidden";
-  const titleClass = "font-medium text-stone-700 text-[11px] truncate leading-none";
+  const blockClass = "bg-white h-11 px-4 rounded-xl border border-stone-100 flex items-center justify-between group hover:border-stone-200 transition-all cursor-pointer shadow-sm active:scale-[0.98] relative overflow-hidden";
+  const titleClass = "font-bold text-stone-800 text-[12px] truncate leading-none";
 
   return (
     <div className="h-full bg-stone-50 overflow-y-auto custom-scrollbar relative">
       <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-12 pb-32">
         
-        <section className="space-y-4">
+        <section className="space-y-5">
            <div className="flex justify-between items-end px-1">
              <div>
-                <h3 className="text-sm font-medium text-stone-900 tracking-tight">领域分类</h3>
-                <p className="text-[9px] text-stone-400 font-medium uppercase tracking-widest">组织你的行为边界</p>
+                <h3 className="text-[15px] font-bold text-stone-900 tracking-tight">领域分类</h3>
+                <p className="text-[9px] text-stone-400 font-medium uppercase tracking-widest mt-0.5">管理你的核心生活维度</p>
              </div>
-             <button onClick={() => { setEditingObjective(null); setIsObjModalOpen(true); }} className="p-1.5 bg-stone-900 text-white rounded-lg hover:bg-stone-800 transition-all shadow-md">
+             <button onClick={() => { setEditingObjective(null); setIsObjModalOpen(true); }} className="p-2 bg-stone-900 text-white rounded-lg hover:bg-stone-800 transition-all shadow-md">
                 <Plus size={16} />
              </button>
            </div>
 
-           <div className="grid grid-cols-2 gap-2">
+           <div className="grid grid-cols-2 gap-3">
               {sortedObjectives.map((obj, idx) => (
                 <div 
                     key={obj.id} 
@@ -126,7 +126,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                     onClick={() => { setEditingObjective(obj); setIsObjModalOpen(true); }}
                 >
                    <div className="flex items-center gap-2.5 min-w-0 flex-1 relative z-10">
-                      <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: obj.color }} />
+                      <div className="w-1.5 h-1.5 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: obj.color }} />
                       <h4 className={titleClass}>{obj.title}</h4>
                    </div>
                    
@@ -143,28 +143,28 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
            </div>
         </section>
 
-        <section className="space-y-6">
+        <section className="space-y-8">
            <div className="flex justify-between items-end px-1">
              <div>
-                <h3 className="text-sm font-medium text-stone-900 tracking-tight">行为模板</h3>
-                <p className="text-[9px] text-stone-400 font-medium uppercase tracking-widest">设定目标与监控进度</p>
+                <h3 className="text-[15px] font-bold text-stone-900 tracking-tight">行为模板</h3>
+                <p className="text-[9px] text-stone-400 font-medium uppercase tracking-widest mt-0.5">预设模板以便快速记录</p>
              </div>
-             <button onClick={() => { setEditingTask(null); setIsTaskModalOpen(true); }} className="p-1.5 bg-stone-900 text-white rounded-lg hover:bg-stone-800 transition-all shadow-md">
+             <button onClick={() => { setEditingTask(null); setIsTaskModalOpen(true); }} className="p-2 bg-stone-900 text-white rounded-lg hover:bg-stone-800 transition-all shadow-md">
                 <Plus size={16} />
              </button>
            </div>
 
-           <div className="space-y-8">
+           <div className="space-y-10">
               {sortedObjectives.map(obj => {
                 const filteredTasks = tasks.filter(t => t.category === obj.id);
                 if (filteredTasks.length === 0) return null;
                 return (
-                  <div key={obj.id} className="space-y-2">
-                    <div className="flex items-center gap-2 px-1">
-                        <span className="text-[10px] font-medium uppercase tracking-widest text-stone-300">{obj.title}</span>
+                  <div key={obj.id} className="space-y-3">
+                    <div className="flex items-center gap-3 px-1">
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-300">{obj.title}</span>
                         <div className="h-px flex-1 bg-stone-100" />
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-3">
                         {filteredTasks.map(task => {
                             const currentVal = taskProgress[task.id] || 0;
                             const target = task.targets;
@@ -190,11 +190,11 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                                         <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: task.color }} />
                                         <span className={titleClass}>{task.name}</span>
                                     </div>
-                                    <div className="relative z-10 flex items-center gap-1 shrink-0 ml-1">
+                                    <div className="relative z-10 flex items-center gap-1.5 shrink-0 ml-1">
                                         {isCompleted ? (
-                                            <Check size={10} className="text-emerald-500" />
+                                            <Check size={12} className="text-emerald-500" />
                                         ) : dailyTarget > 0 && (
-                                            <span className="text-[8px] font-medium text-stone-300 tabular-nums">
+                                            <span className="text-[9px] font-medium text-stone-300 tabular-nums">
                                                 {Math.round(progress)}%
                                             </span>
                                         )}
@@ -210,22 +210,22 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
            </div>
         </section>
 
-        <section className="bg-white px-5 py-4 rounded-2xl border border-stone-100 shadow-sm flex items-center justify-between mt-auto">
-            <div className="flex items-center gap-3">
-                <div className="p-2 bg-stone-100 text-stone-600 rounded-lg">
-                    <Database size={16} />
+        <section className="bg-white px-6 py-5 rounded-3xl border border-stone-100 shadow-sm flex items-center justify-between mt-auto">
+            <div className="flex items-center gap-4">
+                <div className="p-2.5 bg-stone-100 text-stone-600 rounded-xl">
+                    <Database size={20} />
                 </div>
                 <div>
-                    <h3 className="font-medium text-stone-900 text-[13px]">数据与系统</h3>
-                    <p className="text-[9px] font-medium text-stone-400 uppercase tracking-widest">
-                        版本 v1.0 • {format(currentDate, 'yyyy.MM.dd')}
+                    <h3 className="font-bold text-stone-900 text-[14px]">数据同步与维护</h3>
+                    <p className="text-[10px] font-medium text-stone-400 uppercase tracking-widest mt-0.5">
+                        版本 v1.1 • {format(currentDate, 'yyyy.MM.dd')}
                     </p>
                 </div>
             </div>
 
             <button 
                 onClick={() => setIsDataOverlayOpen(true)}
-                className="px-4 py-2 bg-stone-900 text-white rounded-lg text-[10px] font-medium uppercase tracking-widest shadow-sm active:scale-95 transition-all"
+                className="px-5 py-2.5 bg-stone-900 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-md active:scale-95 transition-all"
             >
                 管理数据
             </button>
@@ -234,32 +234,36 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
 
       {isDataOverlayOpen && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white rounded-2xl w-full max-sm overflow-hidden border border-stone-200 shadow-2xl flex flex-col animate-in zoom-in-95 duration-200">
-                <div className="px-5 py-4 bg-stone-50 border-b border-stone-100 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <Database size={16} className="text-stone-900" />
-                        <h3 className="font-medium text-stone-900 text-sm">数据管理</h3>
+            <div className="bg-white rounded-[2rem] w-full max-w-sm overflow-hidden border border-stone-200 shadow-2xl flex flex-col animate-in zoom-in-95 duration-200">
+                <div className="px-6 py-5 bg-stone-50 border-b border-stone-100 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <Database size={18} className="text-stone-900" />
+                        <h3 className="font-bold text-stone-900 text-[15px]">系统数据管理</h3>
                     </div>
                     <button onClick={() => { setIsDataOverlayOpen(false); setShowClearConfirm(false); }} className="p-2 hover:bg-stone-200 rounded-full transition-colors text-stone-400">
-                        <X size={18} />
+                        <X size={20} />
                     </button>
                 </div>
 
-                <div className="p-5 space-y-4">
+                <div className="p-6 space-y-4">
                     <div className="grid grid-cols-2 gap-3">
                         <button 
                             onClick={onExportData}
-                            className="flex flex-col items-center justify-center gap-2 p-4 bg-stone-50 hover:bg-stone-100 rounded-xl border border-stone-100 transition-all group"
+                            className="flex flex-col items-center justify-center gap-3 p-5 bg-stone-50 hover:bg-stone-100 rounded-2xl border border-stone-100 transition-all group"
                         >
-                            <Download size={20} className="text-stone-400 group-hover:text-stone-900" />
-                            <span className="text-[10px] font-medium text-stone-600">备份数据</span>
+                            <div className="p-2 bg-white rounded-lg shadow-sm group-hover:scale-110 transition-transform">
+                                <Download size={24} className="text-stone-400 group-hover:text-stone-900" />
+                            </div>
+                            <span className="text-[11px] font-bold text-stone-600">备份本地数据</span>
                         </button>
                         <button 
                             onClick={() => fileInputRef.current?.click()}
-                            className="flex flex-col items-center justify-center gap-2 p-4 bg-stone-50 hover:bg-stone-100 rounded-xl border border-stone-100 transition-all group"
+                            className="flex flex-col items-center justify-center gap-3 p-5 bg-stone-50 hover:bg-stone-100 rounded-2xl border border-stone-100 transition-all group"
                         >
-                            <Upload size={20} className="text-stone-400 group-hover:text-stone-900" />
-                            <span className="text-[10px] font-medium text-stone-600">恢复数据</span>
+                            <div className="p-2 bg-white rounded-lg shadow-sm group-hover:scale-110 transition-transform">
+                                <Upload size={24} className="text-stone-400 group-hover:text-stone-900" />
+                            </div>
+                            <span className="text-[11px] font-bold text-stone-600">从文件恢复</span>
                             <input ref={fileInputRef} type="file" accept=".json" onChange={handleFileChange} className="hidden" />
                         </button>
                     </div>
@@ -274,24 +278,24 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                                 }
                             }}
                             className={cn(
-                                "w-full py-3.5 rounded-xl font-medium text-[11px] transition-all flex items-center justify-center gap-2",
+                                "w-full py-4 rounded-2xl font-bold text-[12px] transition-all flex items-center justify-center gap-2",
                                 showClearConfirm 
                                     ? "bg-rose-500 text-white shadow-lg" 
                                     : "bg-white border border-rose-100 text-rose-500 hover:bg-rose-50"
                             )}
                         >
                             {showClearConfirm ? (
-                                <><AlertCircle size={14} /> 确认清除？此操作不可逆</>
+                                <><AlertCircle size={16} /> 确定彻底清除所有数据？</>
                             ) : (
-                                <><Trash2 size={14} /> 清除全部数据</>
+                                <><Trash2 size={16} /> 重置所有本地数据</>
                             )}
                         </button>
                     </div>
                 </div>
 
-                <div className="px-5 py-3 bg-stone-50 border-t border-stone-100">
-                    <p className="text-[8px] text-stone-300 font-medium leading-relaxed text-center uppercase tracking-wider">
-                        系统预设将在清除后重新加载
+                <div className="px-6 py-4 bg-stone-50 border-t border-stone-100">
+                    <p className="text-[9px] text-stone-300 font-medium leading-relaxed text-center uppercase tracking-widest">
+                        清除操作将抹除所有行为日志、统计和积分
                     </p>
                 </div>
             </div>
